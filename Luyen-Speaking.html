@@ -1,0 +1,189 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Phản Xạ Nói Tiếng Anh</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 700px; 
+            margin: auto; 
+            background: #f0f8ff; 
+        }
+        h1 { text-align: center; color: #333; }
+        .sentence-en { 
+            font-size: 32px; 
+            text-align: center; 
+            margin: 40px 0; 
+            padding: 30px; 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .meaning-vn {
+            font-size: 28px;
+            text-align: center;
+            color: #d32f2f;
+            font-weight: bold;
+            margin: 30px 0;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .meaning-vn.show {
+            opacity: 1;
+        }
+        .buttons { text-align: center; margin: 40px 0; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 20px; 
+            margin: 15px; 
+            border: none; 
+            border-radius: 15px; 
+            cursor: pointer; 
+        }
+        #play-sample { 
+            background: #4CAF50; 
+            color: white; 
+        }
+        #mic-btn { 
+            background: #2196F3; 
+            color: white; 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 50%; 
+            font-size: 60px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        #mic-btn:active { 
+            background: #f44336; 
+            transform: scale(0.95); 
+        }
+        .instruction {
+            text-align: center; 
+            color: #555; 
+            font-size: 18px; 
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Luyện Phản Xạ Nói Tiếng Anh</h1>
+    
+    <div class="instruction">
+        <p>Bấm <strong>Nghe mẫu</strong> → nghe kỹ<br>
+        Sau đó bấm nút <strong>🎤</strong> và <strong>nói to theo ngay</strong><br>
+        Máy sẽ hiển thị nghĩa tiếng Việt → rồi chuyển câu mới</p>
+    </div>
+
+    <div class="sentence-en" id="sentence-en">
+        Hello! How are you today?
+    </div>
+
+    <div class="meaning-vn" id="meaning-vn">
+        Xin chào! Hôm nay bạn khỏe không?
+    </div>
+
+    <div class="buttons">
+        <button id="play-sample">Nghe mẫu</button>
+    </div>
+
+    <div class="buttons">
+        <button id="mic-btn">🎤</button>
+        <p>Bấm và nói theo ngay!</p>
+    </div>
+
+    <script>
+        // Danh sách câu luyện: mỗi câu có tiếng Anh và nghĩa tiếng Việt
+        const sentences = [
+    { en: "It's raining cats and dogs outside!", 
+      vn: "Trời đang mưa chó mèo rơi rầm rầm! (Mưa rất to, mưa như trút nước)" },
+    
+    { en: "When pigs fly, I'll believe you can finish this homework on time.", 
+      vn: "Khi lợn biết bay thì tao mới tin mày làm bài tập đúng hạn! (Không bao giờ xảy ra)" },
+    
+    { en: "Hold your horses! Wait a minute before you run out.", 
+      vn: "Giữ ngựa lại đã! Chờ chút đã nào trước khi chạy ra ngoài. (Bình tĩnh, chờ đã)" },
+    
+    { en: "I'm feeling under the weather today.", 
+      vn: "Hôm nay tao đang cảm thấy dưới thời tiết. (Ốm, mệt mỏi, không khỏe)" },
+    
+    { en: "Don't count your chickens before they hatch.", 
+      vn: "Đừng đếm gà con trước khi chúng nở. (Đừng vội mừng vì chưa chắc thành công)" },
+    
+    { en: "He's barking up the wrong tree if he thinks I'll lend him money.", 
+      vn: "Nó đang sủa nhầm cây nếu nghĩ tao sẽ cho vay tiền. (Hiểu lầm, nhầm đối tượng)" },
+    
+    { en: "Let the cat out of the bag – I already know about the surprise party!", 
+      vn: "Thả con mèo ra khỏi túi rồi – tao biết hết về bữa tiệc bất ngờ rồi! (Để lộ bí mật)" },
+    
+    { en: "Fight like cat and dog? That's my brother and me every day.", 
+      vn: "Cãi nhau như chó với mèo? Đó là anh em tao hàng ngày luôn. (Cãi vã liên tục)" },
+    
+    { en: "Kill two birds with one stone – let's eat and study at the same time.", 
+      vn: "Giết hai con chim bằng một viên đá – vừa ăn vừa học luôn! (Làm một việc được hai lợi)" },
+    
+    { en: "The elephant in the room is that we're all late for class.", 
+      vn: "Con voi trong phòng là cả lớp mình đều trễ học. (Vấn đề lớn ai cũng biết nhưng không ai nói)" }
+];
+
+        let currentIndex = 0;
+        const sentenceEn = document.getElementById('sentence-en');
+        const meaningVn = document.getElementById('meaning-vn');
+        const playSampleBtn = document.getElementById('play-sample');
+        const micBtn = document.getElementById('mic-btn');
+
+        // Cập nhật câu hiện tại
+        function updateSentence() {
+            sentenceEn.textContent = sentences[currentIndex].en;
+            meaningVn.textContent = sentences[currentIndex].vn;
+            meaningVn.classList.remove('show'); // Ẩn nghĩa trước
+        }
+
+        // Đọc mẫu tiếng Anh
+        function speakSample() {
+            const text = sentences[currentIndex].en;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;   // Chậm một chút để dễ bắt chước
+            utterance.pitch = 1;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+        }
+
+        // Bấm nút Nghe mẫu
+        playSampleBtn.onclick = () => {
+            speakSample();
+        };
+
+        // Bấm nút microphone → học sinh nói theo → hiển thị nghĩa → chờ → chuyển câu mới
+        micBtn.onclick = () => {
+            // Đổi màu nút để tạo cảm giác "đang nói"
+            micBtn.style.background = '#f44336';
+            
+            // Hiển thị nghĩa tiếng Việt sau 1 giây (đủ thời gian nói theo)
+            setTimeout(() => {
+                meaningVn.classList.add('show');
+            }, 1000);
+
+            // Sau 7-8 giây hiển thị nghĩa → chuyển sang câu mới và tự động đọc mẫu
+            setTimeout(() => {
+                micBtn.style.background = '#2196F3'; // Trở lại màu xanh
+                currentIndex = (currentIndex + 1) % sentences.length;
+                updateSentence();
+                speakSample(); // Tự động đọc mẫu câu mới
+            }, 7500); // 5 giây tổng cộng (có thể chỉnh thành 4000 hoặc 6000 tùy bạn)
+        };
+
+        // Khởi động: hiển thị câu đầu tiên
+        updateSentence();
+        // speakSample(); // Bỏ comment nếu muốn tự động đọc ngay khi mở trang
+    </script>
+</body>
+</html>
